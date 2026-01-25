@@ -64,7 +64,21 @@
         .ios-item { display: flex; align-items: center; padding: 14px 16px; border-bottom: 0.5px solid var(--ios-sep); }
         .ios-item:last-child { border-bottom: none; }
         .ios-item label { flex: 1; font-size: 17px; }
-        .ios-item input { border: none; background: none; font-size: 17px; text-align: right; width: 60%; color: var(--ios-blue); outline: none; }
+        
+        /* 統一所有輸入框向右對齊 */
+        .ios-item input { 
+            border: none; 
+            background: none; 
+            font-size: 17px; 
+            text-align: right; 
+            width: 60%; 
+            color: var(--ios-blue); 
+            outline: none;
+            display: flex;
+            justify-content: flex-end; /* 針對日期時間控制項 */
+            appearance: none; /* 移除預設外觀 */
+            -webkit-appearance: none;
+        }
 
         .btn { 
             width: 100%; padding: 16px; border-radius: 14px; background: var(--ios-blue); 
@@ -126,7 +140,6 @@
             render();
         };
 
-        // 設定目前日期與時間為預設值
         function setCurrentTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -155,20 +168,14 @@
             if(!d || !t || isNaN(l) || isNaN(km)) return alert("請正確輸入數值");
             
             const entry = { d, t, l, km, cons: Number((km/l).toFixed(2)) };
-            
             if(idx === -1) records.push(entry); else records[idx] = entry;
-            
-            // 排序：先比日期，日期相同比時間
             records.sort((a,b) => (a.d + a.t).localeCompare(b.d + b.t));
-            
             localStorage.setItem('fuelRecords', JSON.stringify(records));
             
-            // 重置輸入框
             document.getElementById('editIdx').value="-1";
             document.getElementById('liters').value='';
             document.getElementById('distance').value='';
             setCurrentTime();
-            
             render(); 
             tab(2);
         }
@@ -204,30 +211,10 @@
         }
 
         function del(i) { if(confirm("確定刪除這筆紀錄？")) { records.splice(i,1); localStorage.setItem('fuelRecords', JSON.stringify(records)); render(); } }
-        
-        function initChart() { 
-            const ctx = document.getElementById('chart').getContext('2d'); 
-            chart = new Chart(ctx, { 
-                type:'line', 
-                data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4, fill: false}]}, 
-                options:{plugins:{legend:{display:false}}}
-            }); 
-        }
-        
-        function updateChart() { 
-            chart.data.labels = records.map(r => r.d + ' ' + (r.t || '')); 
-            chart.data.datasets[0].data = records.map(r => r.cons); 
-            chart.update(); 
-        }
-        
+        function initChart() { const ctx = document.getElementById('chart').getContext('2d'); chart = new Chart(ctx, { type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4, fill: false}]}, options:{plugins:{legend:{display:false}}}}); }
+        function updateChart() { chart.data.labels = records.map(r => r.d + ' ' + (r.t || '')); chart.data.datasets[0].data = records.map(r => r.cons); chart.update(); }
         function clearAll() { if(confirm("確定清除所有資料？")) { localStorage.clear(); records=[]; render(); } }
-        
-        function exportXLS() { 
-            const ws = XLSX.utils.json_to_sheet(records); 
-            const wb = XLSX.utils.book_new(); 
-            XLSX.utils.book_append_sheet(wb, ws, "Fuel"); 
-            XLSX.writeFile(wb, "MyFuelLog.xlsx"); 
-        }
+        function exportXLS() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fuel"); XLSX.writeFile(wb, "MyFuelLog.xlsx"); }
     </script>
 </body>
 </html>
