@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2311/2311545.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="油耗記錄">
+    <meta name="apple-mobile-web-app-title" content="油耗記錄代">
     
     <title>油耗 App</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         :root {
@@ -22,7 +22,7 @@
             --ios-sep: #C6C6C8;
         }
 
-        /* 自動切換深色模式 (黑白介面) */
+        /* 黑白介面自動切換 */
         @media (prefers-color-scheme: dark) {
             :root {
                 --ios-bg: #000000;
@@ -42,10 +42,7 @@
 
         h1 { font-size: 34px; font-weight: 800; margin: 20px 0; letter-spacing: -1px; }
 
-        /* 修正統計區擋字問題 */
-        .stats-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; 
-        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-card { 
             background: var(--ios-card); padding: 15px; border-radius: 12px; text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -53,7 +50,6 @@
         .stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
         .stat-card span { font-size: 12px; color: #8E8E93; font-weight: 600; }
 
-        /* 分段控制器 */
         .segmented {
             background: #7676801f; border-radius: 10px; padding: 2px;
             display: flex; margin-bottom: 25px;
@@ -64,7 +60,6 @@
         }
         .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
 
-        /* iOS 表單樣式 */
         .ios-list { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
         .ios-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-sep); }
         .ios-item:last-child { border-bottom: none; }
@@ -77,13 +72,11 @@
         }
         .btn:active { opacity: 0.7; }
 
-        /* 清單 */
         .record-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 0.5px solid var(--ios-sep); }
         .record-val { font-size: 20px; font-weight: 700; color: var(--ios-blue); }
 
         .sec { display: none; }
-        .sec.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sec.active { display: block; }
     </style>
 </head>
 <body>
@@ -110,20 +103,11 @@
     <div id="s0" class="sec active">
         <div class="ios-list">
             <input type="hidden" id="editIdx" value="-1">
-            <div class="ios-item">
-                <label>日期</label>
-                <input type="date" id="date">
-            </div>
-            <div class="ios-item">
-                <label>公升 (L)</label>
-                <input type="number" id="liters" placeholder="0.00">
-            </div>
-            <div class="ios-item">
-                <label>里程 (km)</label>
-                <input type="number" id="distance" placeholder="0.0">
-            </div>
+            <div class="ios-item"><label>日期</label><input type="date" id="date"></div>
+            <div class="ios-item"><label>公升 (L)</label><input type="number" id="liters" placeholder="0.00"></div>
+            <div class="ios-item"><label>里程 (km)</label><input type="number" id="distance" placeholder="0.0"></div>
         </div>
-        <button class="btn" onclick="save()">儲存</button>
+        <button class="btn" onclick="save()">儲存數據</button>
     </div>
 
     <div id="s1" class="sec">
@@ -133,7 +117,7 @@
     <div id="s2" class="sec">
         <div class="ios-list" id="list" style="padding: 0 16px;"></div>
         <button onclick="exportXLS()" style="color:var(--ios-blue); background:none; border:none; width:100%; padding:20px; font-size:16px;">📥 導出 Excel</button>
-        <button onclick="clearAll()" style="color:#FF3B30; background:none; border:none; width:100%; font-size:12px;">清除資料</button>
+        <button onclick="clearAll()" style="color:#FF3B30; background:none; border:none; width:100%; font-size:12px;">重置 App</button>
     </div>
 
     <script>
@@ -157,42 +141,32 @@
             const l = parseFloat(document.getElementById('liters').value);
             const km = parseFloat(document.getElementById('distance').value);
             const idx = parseInt(document.getElementById('editIdx').value);
-
             if(!d || !l || !km) return alert("請填寫完整");
-
-            const cons = Number((km / l).toFixed(2));
-            const entry = { d, l, km, cons };
-
+            const entry = { d, l, km, cons: Number((km/l).toFixed(2)) };
             if(idx === -1) records.push(entry);
             else records[idx] = entry;
-
             records.sort((a,b) => new Date(a.d) - new Date(b.d));
             localStorage.setItem('fuelRecords', JSON.stringify(records));
-            reset(); render(); tab(2);
+            document.getElementById('editIdx').value="-1";
+            document.getElementById('liters').value='';
+            document.getElementById('distance').value='';
+            render(); tab(2);
         }
 
         function render() {
+            const valid = records.filter(r => !isNaN(r.cons));
+            document.getElementById('avgVal').innerText = valid.length ? (valid.reduce((s,r) => s+r.cons, 0)/valid.length).toFixed(2) : "0.00";
+            document.getElementById('countVal').innerText = records.length;
             const container = document.getElementById('list');
             container.innerHTML = '';
-            
-            // 修正 NaN 邏輯
-            const valid = records.filter(r => !isNaN(r.cons));
-            const avg = valid.length ? (valid.reduce((s,r) => s+r.cons, 0)/valid.length).toFixed(2) : "0.00";
-            
-            document.getElementById('avgVal').innerText = avg;
-            document.getElementById('countVal').innerText = records.length;
-
             [...records].reverse().forEach(r => {
                 const i = records.indexOf(r);
-                container.innerHTML += `
-                    <div class="record-row">
-                        <div><b>${r.d}</b><br><small style="color:#8E8E93">${r.l}L / ${r.km}km</small></div>
-                        <div style="text-align:right">
-                            <span class="record-val">${r.cons}</span><br>
-                            <small style="color:var(--ios-blue)" onclick="editRecord(${i})">改</small>
-                            <small style="color:#FF3B30;margin-left:10px" onclick="del(${i})">刪</small>
-                        </div>
-                    </div>`;
+                container.innerHTML += `<div class="record-row">
+                    <div><b>${r.d}</b><br><small style="color:#8E8E93">${r.l}L / ${r.km}km</small></div>
+                    <div style="text-align:right"><span class="record-val">${r.cons}</span><br>
+                    <small style="color:var(--ios-blue)" onclick="editRecord(${i})">改</small>
+                    <small style="color:#FF3B30;margin-left:10px" onclick="del(${i})">刪</small></div>
+                </div>`;
             });
         }
 
@@ -206,8 +180,6 @@
         }
 
         function del(i) { if(confirm("刪除？")) { records.splice(i,1); localStorage.setItem('fuelRecords', JSON.stringify(records)); render(); } }
-        function reset() { document.getElementById('editIdx').value="-1"; document.getElementById('liters').value=''; document.getElementById('distance').value=''; }
-        
         function initChart() {
             const ctx = document.getElementById('chart').getContext('2d');
             chart = new Chart(ctx, { type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4}]}, options:{plugins:{legend:{display:false}}}});
