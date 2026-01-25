@@ -3,287 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>油耗記錄</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="油耗記錄">
+    
+    <title>油耗 App</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         :root {
-            --ios-blue: #007AFF;
             --ios-bg: #F2F2F7;
             --ios-card: #FFFFFF;
             --ios-text: #000000;
-            --ios-secondary: #8E8E93;
+            --ios-blue: #007AFF;
             --ios-sep: #C6C6C8;
         }
 
-        /* 自動感應深色模式 */
+        /* 自動切換深色模式 (黑白介面) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --ios-bg: #000000;
                 --ios-card: #1C1C1E;
                 --ios-text: #FFFFFF;
-                --ios-secondary: #8E8E93;
+                --ios-blue: #0A84FF;
                 --ios-sep: #38383A;
             }
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            font-family: -apple-system, system-ui, sans-serif; 
             background-color: var(--ios-bg); 
             margin: 0; padding: 20px; color: var(--ios-text);
-            padding-top: 70px;
-            transition: background 0.3s, color 0.3s;
+            padding-top: env(safe-area-inset-top, 20px);
         }
 
-        /* 導覽列修正：避免擋住內容 */
-        .header { 
-            position: fixed; top: 0; left: 0; right: 0; 
-            padding: 10px 20px; 
-            background: var(--ios-bg);
-            opacity: 0.95;
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            z-index: 100;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 800; }
+        h1 { font-size: 34px; font-weight: 800; margin: 20px 0; letter-spacing: -1px; }
 
-        /* 統計數值區：修正重疊問題 */
-        .card { 
-            background: var(--ios-card); 
-            border-radius: 14px; padding: 18px; margin-bottom: 20px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        /* 修正統計區擋字問題 */
+        .stats-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; 
         }
-        .stats { display: flex; justify-content: space-around; text-align: center; }
-        .stat-item strong { display: block; font-size: 26px; font-weight: 700; color: var(--ios-blue); margin-bottom: 4px; }
-        .stat-item span { font-size: 12px; color: var(--ios-secondary); font-weight: 500; }
+        .stat-card { 
+            background: var(--ios-card); padding: 15px; border-radius: 12px; text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
+        .stat-card span { font-size: 12px; color: #8E8E93; font-weight: 600; }
 
-        /* 分段控制 */
-        .segmented-control {
+        /* 分段控制器 */
+        .segmented {
             background: #7676801f; border-radius: 10px; padding: 2px;
-            display: flex; margin-bottom: 20px;
+            display: flex; margin-bottom: 25px;
         }
         .segment {
-            flex: 1; padding: 7px 0; text-align: center; font-size: 13px; font-weight: 600;
-            cursor: pointer; border-radius: 8px; transition: 0.2s; color: var(--ios-text);
+            flex: 1; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 600;
+            cursor: pointer; border-radius: 8px; color: var(--ios-text);
         }
-        .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
 
-        /* 清單樣式 */
-        .list-group { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-        .list-item { 
-            display: flex; align-items: center; padding: 14px 16px; 
-            border-bottom: 0.5px solid var(--ios-sep); 
-        }
-        .list-item:last-child { border-bottom: none; }
-        .list-item label { flex: 1; font-size: 17px; display: flex; align-items: center; gap: 10px; }
-        .list-item input { 
-            border: none; background: none; font-size: 17px; text-align: right; 
-            width: 50%; color: var(--ios-blue); outline: none; 
-        }
+        /* iOS 表單樣式 */
+        .ios-list { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .ios-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-sep); }
+        .ios-item:last-child { border-bottom: none; }
+        .ios-item label { flex: 1; font-size: 17px; }
+        .ios-item input { border: none; background: none; font-size: 17px; text-align: right; width: 60%; color: var(--ios-blue); outline: none; }
 
-        .action-btn { 
-            width: 100%; padding: 16px; border-radius: 14px; 
-            background: var(--ios-blue); color: white; font-size: 17px; font-weight: 600;
-            border: none; cursor: pointer;
+        .btn { 
+            width: 100%; padding: 16px; border-radius: 12px; background: var(--ios-blue); 
+            color: white; border: none; font-size: 17px; font-weight: 600; cursor: pointer;
         }
-        .action-btn:active { opacity: 0.7; }
+        .btn:active { opacity: 0.7; }
 
-        /* 歷史記錄列 */
-        .record-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px 0; border-bottom: 0.5px solid var(--ios-sep); 
-        }
-        .record-row:last-child { border-bottom: none; }
-        .record-info { display: flex; flex-direction: column; }
-        .record-date { font-size: 16px; font-weight: 600; }
-        .record-sub { font-size: 12px; color: var(--ios-secondary); }
+        /* 清單 */
+        .record-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 0.5px solid var(--ios-sep); }
         .record-val { font-size: 20px; font-weight: 700; color: var(--ios-blue); }
 
-        /* 內容隱藏 */
-        .section { display: none; }
-        .section.active { display: block; animation: fadeIn 0.3s; }
+        .sec { display: none; }
+        .sec.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>記錄</h1>
-        <i data-lucide="settings" style="width:20px; color:var(--ios-blue)" onclick="clearAll()"></i>
-    </div>
+    <h1>紀錄</h1>
 
-    <div class="card stats">
-        <div class="stat-item">
+    <div class="stats-grid">
+        <div class="stat-card">
             <strong id="avgVal">0.00</strong>
             <span>平均 km/L</span>
         </div>
-        <div class="stat-item">
+        <div class="stat-card">
             <strong id="countVal">0</strong>
-            <span>記錄筆數</span>
+            <span>總筆數</span>
         </div>
     </div>
 
-    <div class="segmented-control">
-        <div class="segment active" onclick="switchTab(0)">新增數據</div>
-        <div class="segment" onclick="switchTab(1)">趨勢圖</div>
-        <div class="segment" onclick="switchTab(2)">明細表</div>
+    <div class="segmented">
+        <div class="segment active" onclick="tab(0)">新增</div>
+        <div class="segment" onclick="tab(1)">圖表</div>
+        <div class="segment" onclick="tab(2)">明細</div>
     </div>
 
-    <div id="sec-0" class="section active">
-        <div class="list-group">
-            <input type="hidden" id="editIndex" value="-1">
-            <div class="list-item">
-                <label><i data-lucide="calendar" style="width:18px;color:#FF2D55"></i>日期</label>
+    <div id="s0" class="sec active">
+        <div class="ios-list">
+            <input type="hidden" id="editIdx" value="-1">
+            <div class="ios-item">
+                <label>日期</label>
                 <input type="date" id="date">
             </div>
-            <div class="list-item">
-                <label><i data-lucide="fuel" style="width:18px;color:#FF9500"></i>公升 (L)</label>
+            <div class="ios-item">
+                <label>公升 (L)</label>
                 <input type="number" id="liters" placeholder="0.00">
             </div>
-            <div class="list-item">
-                <label><i data-lucide="milestone" style="width:18px;color:#34C759"></i>里程 (km)</label>
+            <div class="ios-item">
+                <label>里程 (km)</label>
                 <input type="number" id="distance" placeholder="0.0">
             </div>
         </div>
-        <button id="saveBtn" class="action-btn" onclick="saveRecord()">儲存數據</button>
-        <button id="cancelBtn" class="action-btn" style="display:none; background:#8E8E93; margin-top:10px;" onclick="resetForm()">取消編輯</button>
+        <button class="btn" onclick="save()">儲存</button>
     </div>
 
-    <div id="sec-1" class="section">
-        <div class="card">
-            <canvas id="fuelChart"></canvas>
-        </div>
+    <div id="s1" class="sec">
+        <div class="stat-card"><canvas id="chart"></canvas></div>
     </div>
 
-    <div id="sec-2" class="section">
-        <div class="card" style="padding-bottom:5px">
-            <div id="recordBody"></div>
-        </div>
-        <button onclick="exportToExcel()" style="color:var(--ios-blue); background:none; border:none; width:100%; font-size:16px; margin: 15px 0;">📥 導出 Excel 報表</button>
+    <div id="s2" class="sec">
+        <div class="ios-list" id="list" style="padding: 0 16px;"></div>
+        <button onclick="exportXLS()" style="color:var(--ios-blue); background:none; border:none; width:100%; padding:20px; font-size:16px;">📥 導出 Excel</button>
+        <button onclick="clearAll()" style="color:#FF3B30; background:none; border:none; width:100%; font-size:12px;">清除資料</button>
     </div>
 
     <script>
-        lucide.createIcons();
         let records = JSON.parse(localStorage.getItem('fuelRecords')) || [];
-        let fuelChart;
+        let chart;
 
         window.onload = () => {
             document.getElementById('date').valueAsDate = new Date();
             initChart();
-            renderAll();
+            render();
         };
 
-        function switchTab(idx) {
-            document.querySelectorAll('.segment').forEach((s, i) => s.classList.toggle('active', i === idx));
-            document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === idx));
-            if(idx === 1) updateChart();
+        function tab(i) {
+            document.querySelectorAll('.segment').forEach((s, x) => s.classList.toggle('active', x===i));
+            document.querySelectorAll('.sec').forEach((s, x) => s.classList.toggle('active', x===i));
+            if(i===1) updateChart();
         }
 
-        function saveRecord() {
-            const date = document.getElementById('date').value;
-            const liters = parseFloat(document.getElementById('liters').value);
-            const distance = parseFloat(document.getElementById('distance').value);
-            const editIndex = parseInt(document.getElementById('editIndex').value);
+        function save() {
+            const d = document.getElementById('date').value;
+            const l = parseFloat(document.getElementById('liters').value);
+            const km = parseFloat(document.getElementById('distance').value);
+            const idx = parseInt(document.getElementById('editIdx').value);
 
-            if (!date || !liters || !distance) return alert("請填入完整數值");
+            if(!d || !l || !km) return alert("請填寫完整");
 
-            const consumption = Number((distance / liters).toFixed(2));
-            const entry = { date, liters, distance, consumption };
+            const cons = Number((km / l).toFixed(2));
+            const entry = { d, l, km, cons };
 
-            if (editIndex === -1) records.push(entry);
-            else records[editIndex] = entry;
+            if(idx === -1) records.push(entry);
+            else records[idx] = entry;
 
-            records.sort((a, b) => new Date(a.date) - new Date(b.date));
+            records.sort((a,b) => new Date(a.d) - new Date(b.d));
             localStorage.setItem('fuelRecords', JSON.stringify(records));
-            resetForm();
-            renderAll();
-            switchTab(2);
+            reset(); render(); tab(2);
         }
 
-        function renderAll() {
-            const body = document.getElementById('recordBody');
-            body.innerHTML = '';
+        function render() {
+            const container = document.getElementById('list');
+            container.innerHTML = '';
             
-            // 修正計算平均油耗的邏輯，避免出現 NaN
-            const valid = records.filter(r => !isNaN(r.consumption));
-            const total = valid.reduce((s, r) => s + r.consumption, 0);
-            const avg = valid.length ? (total / valid.length).toFixed(2) : "0.00";
+            // 修正 NaN 邏輯
+            const valid = records.filter(r => !isNaN(r.cons));
+            const avg = valid.length ? (valid.reduce((s,r) => s+r.cons, 0)/valid.length).toFixed(2) : "0.00";
             
             document.getElementById('avgVal').innerText = avg;
             document.getElementById('countVal').innerText = records.length;
 
             [...records].reverse().forEach(r => {
-                const idx = records.indexOf(r);
-                body.innerHTML += `
+                const i = records.indexOf(r);
+                container.innerHTML += `
                     <div class="record-row">
-                        <div class="record-info">
-                            <span class="record-date">${r.date}</span>
-                            <span class="record-sub">${r.liters}L / ${r.distance}km</span>
-                        </div>
+                        <div><b>${r.d}</b><br><small style="color:#8E8E93">${r.l}L / ${r.km}km</small></div>
                         <div style="text-align:right">
-                            <span class="record-val">${r.consumption}</span><br>
-                            <small style="color:var(--ios-blue)" onclick="editRecord(${idx})">改</small>
-                            <small style="color:#FF3B30;margin-left:10px" onclick="deleteRecord(${idx})">刪</small>
+                            <span class="record-val">${r.cons}</span><br>
+                            <small style="color:var(--ios-blue)" onclick="editRecord(${i})">改</small>
+                            <small style="color:#FF3B30;margin-left:10px" onclick="del(${i})">刪</small>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-            updateChart();
         }
 
-        function editRecord(idx) {
-            const r = records[idx];
-            document.getElementById('date').value = r.date;
-            document.getElementById('liters').value = r.liters;
-            document.getElementById('distance').value = r.distance;
-            document.getElementById('editIndex').value = idx;
-            document.getElementById('saveBtn').innerText = "確認修改";
-            document.getElementById('cancelBtn').style.display = "block";
-            switchTab(0);
+        function editRecord(i) {
+            const r = records[i];
+            document.getElementById('date').value = r.d;
+            document.getElementById('liters').value = r.l;
+            document.getElementById('distance').value = r.km;
+            document.getElementById('editIdx').value = i;
+            tab(0);
         }
 
-        function deleteRecord(idx) {
-            if(confirm("確定刪除？")) { records.splice(idx,1); localStorage.setItem('fuelRecords', JSON.stringify(records)); renderAll(); }
-        }
-
-        function resetForm() {
-            document.getElementById('editIndex').value="-1";
-            document.getElementById('liters').value='';
-            document.getElementById('distance').value='';
-            document.getElementById('saveBtn').innerText="儲存數據";
-            document.getElementById('cancelBtn').style.display="none";
-        }
-
+        function del(i) { if(confirm("刪除？")) { records.splice(i,1); localStorage.setItem('fuelRecords', JSON.stringify(records)); render(); } }
+        function reset() { document.getElementById('editIdx').value="-1"; document.getElementById('liters').value=''; document.getElementById('distance').value=''; }
+        
         function initChart() {
-            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const ctx = document.getElementById('fuelChart').getContext('2d');
-            fuelChart = new Chart(ctx, {
-                type: 'line',
-                data: { labels: [], datasets: [{ label: 'km/L', data: [], borderColor: '#007AFF', tension: 0.4, fill: false }] },
-                options: { 
-                    scales: { y: { grid: { color: isDark ? '#38383A' : '#E5E5E7' } } },
-                    plugins: { legend: { display: false } } 
-                }
-            });
+            const ctx = document.getElementById('chart').getContext('2d');
+            chart = new Chart(ctx, { type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4}]}, options:{plugins:{legend:{display:false}}}});
         }
-
         function updateChart() {
-            fuelChart.data.labels = records.map(r => r.date);
-            fuelChart.data.datasets[0].data = records.map(r => r.consumption);
-            fuelChart.update();
+            chart.data.labels = records.map(r => r.d);
+            chart.data.datasets[0].data = records.map(r => r.cons);
+            chart.update();
         }
-
-        function clearAll() {
-            if(confirm("重置所有資料？")) { localStorage.clear(); records=[]; renderAll(); }
-        }
-
-        function exportToExcel() {
-            const ws = XLSX.utils.json_to_sheet(records);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "OilRecord");
-            XLSX.writeFile(wb, "Fuel_iOS_Log.xlsx");
-        }
+        function clearAll() { if(confirm("全部刪除？")) { localStorage.clear(); records=[]; render(); } }
+        function exportXLS() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fuel"); XLSX.writeFile(wb, "Fuel_Log.xlsx"); }
     </script>
 </body>
 </html>
