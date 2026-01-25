@@ -37,6 +37,7 @@
             background-color: var(--ios-bg); 
             margin: 0; padding: 20px; color: var(--ios-text);
             padding-top: calc(env(safe-area-inset-top) + 20px);
+            -webkit-user-select: none;
         }
 
         h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
@@ -47,7 +48,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
-        .stat-card span { font-size: 11px; color: #8E8E93; font-weight: 600; text-transform: uppercase; }
+        .stat-card span { font-size: 11px; color: #8E8E93; font-weight: 600; }
 
         .segmented {
             background: #7676801f; border-radius: 10px; padding: 2px;
@@ -98,8 +99,9 @@
         <div class="ios-list">
             <input type="hidden" id="editIdx" value="-1">
             <div class="ios-item"><label>日期</label><input type="date" id="date"></div>
-            <div class="ios-item"><label>公升 (L)</label><input type="number" id="liters" placeholder="0.00"></div>
-            <div class="ios-item"><label>里程 (km)</label><input type="number" id="distance" placeholder="0.0"></div>
+            <div class="ios-item"><label>時間</label><input type="time" id="time"></div>
+            <div class="ios-item"><label>公升 (L)</label><input type="number" id="liters" placeholder="0.00" inputmode="decimal"></div>
+            <div class="ios-item"><label>里程 (km)</label><input type="number" id="distance" placeholder="0.0" inputmode="decimal"></div>
         </div>
         <button class="btn" onclick="save()">儲存數據</button>
     </div>
@@ -119,10 +121,23 @@
         let chart;
 
         window.onload = () => {
-            document.getElementById('date').valueAsDate = new Date();
+            setCurrentTime();
             initChart();
             render();
         };
+
+        // 設定目前日期與時間為預設值
+        function setCurrentTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('date').value = `${year}-${month}-${day}`;
+            document.getElementById('time').value = `${hours}:${minutes}`;
+        }
 
         function tab(i) {
             document.querySelectorAll('.segment').forEach((s, x) => s.classList.toggle('active', x===i));
@@ -131,14 +146,31 @@
         }
 
         function save() {
-            const d = document.getElementById('date').value, l = parseFloat(document.getElementById('liters').value), km = parseFloat(document.getElementById('distance').value), idx = parseInt(document.getElementById('editIdx').value);
-            if(!d || isNaN(l) || isNaN(km)) return alert("請正確輸入數值");
-            const entry = { d, l, km, cons: Number((km/l).toFixed(2)) };
+            const d = document.getElementById('date').value;
+            const t = document.getElementById('time').value;
+            const l = parseFloat(document.getElementById('liters').value);
+            const km = parseFloat(document.getElementById('distance').value);
+            const idx = parseInt(document.getElementById('editIdx').value);
+            
+            if(!d || !t || isNaN(l) || isNaN(km)) return alert("請正確輸入數值");
+            
+            const entry = { d, t, l, km, cons: Number((km/l).toFixed(2)) };
+            
             if(idx === -1) records.push(entry); else records[idx] = entry;
-            records.sort((a,b) => new Date(a.d) - new Date(b.d));
+            
+            // 排序：先比日期，日期相同比時間
+            records.sort((a,b) => (a.d + a.t).localeCompare(b.d + b.t));
+            
             localStorage.setItem('fuelRecords', JSON.stringify(records));
-            document.getElementById('editIdx').value="-1"; document.getElementById('liters').value=''; document.getElementById('distance').value='';
-            render(); tab(2);
+            
+            // 重置輸入框
+            document.getElementById('editIdx').value="-1";
+            document.getElementById('liters').value='';
+            document.getElementById('distance').value='';
+            setCurrentTime();
+            
+            render(); 
+            tab(2);
         }
 
         function render() {
@@ -146,10 +178,14 @@
             document.getElementById('avgVal').innerText = valid.length ? (valid.reduce((s,r) => s+r.cons, 0)/valid.length).toFixed(2) : "0.00";
             document.getElementById('countVal').innerText = records.length;
             const container = document.getElementById('list'); container.innerHTML = '';
+            
             [...records].reverse().forEach(r => {
                 const i = records.indexOf(r);
                 container.innerHTML += `<div class="record-row">
-                    <div><b>${r.d}</b><br><small style="color:#8E8E93">${r.l}L / ${r.km}km</small></div>
+                    <div>
+                        <b>${r.d} <span style="font-weight:normal; font-size:14px; color:#8E8E93; margin-left:5px;">${r.t || ''}</span></b><br>
+                        <small style="color:#8E8E93">${r.l}L / ${r.km}km</small>
+                    </div>
                     <div style="text-align:right"><span class="record-val">${r.cons}</span><br>
                     <small style="color:var(--ios-blue)" onclick="editRecord(${i})">編輯</small>
                     <small style="color:#FF3B30;margin-left:10px" onclick="del(${i})">刪除</small></div>
@@ -157,12 +193,41 @@
             });
         }
 
-        function editRecord(i) { const r = records[i]; document.getElementById('date').value = r.d; document.getElementById('liters').value = r.l; document.getElementById('distance').value = r.km; document.getElementById('editIdx').value = i; tab(0); }
+        function editRecord(i) { 
+            const r = records[i]; 
+            document.getElementById('date').value = r.d; 
+            document.getElementById('time').value = r.t || "00:00";
+            document.getElementById('liters').value = r.l; 
+            document.getElementById('distance').value = r.km; 
+            document.getElementById('editIdx').value = i; 
+            tab(0); 
+        }
+
         function del(i) { if(confirm("確定刪除這筆紀錄？")) { records.splice(i,1); localStorage.setItem('fuelRecords', JSON.stringify(records)); render(); } }
-        function initChart() { const ctx = document.getElementById('chart').getContext('2d'); chart = new Chart(ctx, { type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4, fill: false}]}, options:{plugins:{legend:{display:false}}}}); }
-        function updateChart() { chart.data.labels = records.map(r => r.d); chart.data.datasets[0].data = records.map(r => r.cons); chart.update(); }
+        
+        function initChart() { 
+            const ctx = document.getElementById('chart').getContext('2d'); 
+            chart = new Chart(ctx, { 
+                type:'line', 
+                data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4, fill: false}]}, 
+                options:{plugins:{legend:{display:false}}}
+            }); 
+        }
+        
+        function updateChart() { 
+            chart.data.labels = records.map(r => r.d + ' ' + (r.t || '')); 
+            chart.data.datasets[0].data = records.map(r => r.cons); 
+            chart.update(); 
+        }
+        
         function clearAll() { if(confirm("確定清除所有資料？")) { localStorage.clear(); records=[]; render(); } }
-        function exportXLS() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fuel"); XLSX.writeFile(wb, "MyFuelLog.xlsx"); }
+        
+        function exportXLS() { 
+            const ws = XLSX.utils.json_to_sheet(records); 
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Fuel"); 
+            XLSX.writeFile(wb, "MyFuelLog.xlsx"); 
+        }
     </script>
 </body>
 </html>
