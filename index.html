@@ -8,89 +8,26 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="油耗記錄">
     <title>油耗 App</title>
+    
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --ios-bg: #F2F2F7;
-            --ios-card: #FFFFFF;
-            --ios-text: #000000;
-            --ios-blue: #007AFF;
-            --ios-sep: #C6C6C8;
-        }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --ios-bg: #000000;
-                --ios-card: #1C1C1E;
-                --ios-text: #FFFFFF;
-                --ios-blue: #0A84FF;
-                --ios-sep: #38383A;
-            }
-        }
-        body { 
-            font-family: -apple-system, system-ui, sans-serif; 
-            background-color: var(--ios-bg); 
-            margin: 0; padding: 20px; color: var(--ios-text);
-            padding-top: calc(env(safe-area-inset-top) + 20px);
-            -webkit-user-select: none;
-        }
-        h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--ios-card); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
-        .stat-card span { font-size: 11px; color: #8E8E93; font-weight: 600; }
-        .segmented { background: #7676801f; border-radius: 10px; padding: 2px; display: flex; margin-bottom: 25px; }
-        .segment { flex: 1; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ios-text); }
-        .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
-        .ios-list { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-        .ios-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 0.5px solid var(--ios-sep); }
-        .ios-item:last-child { border-bottom: none; }
-        .ios-item label { font-size: 17px; white-space: nowrap; }
-
-        .ios-item input { 
-            border: none; 
-            background: none; 
-            font-size: 17px; 
-            color: var(--ios-blue); 
-            outline: none;
-            width: 100%;
-            text-align: right;
-            direction: rtl;
-        }
-        input::-webkit-date-and-time-value {
-
-            text-align: right;
-
-            padding-right: 5px;
-
-        }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; background: var(--ios-blue); color: white; border: none; font-size: 17px; font-weight: 600; cursor: pointer; }
-        .btn:active { opacity: 0.5; }
-        .record-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-sep); }
-        .record-val { font-size: 20px; font-weight: 700; color: var(--ios-blue); }
-        
-        /* 新增：對比標籤樣式 */
-        .diff-tag { font-size: 12px; font-weight: 600; margin-left: 4px; }
-        .diff-up { color: #34C759; } /* 綠色代表省油 */
-        .diff-down { color: #FF3B30; } /* 紅色代表耗油 */
-        .days-tag { font-size: 11px; color: #8E8E93; background: #7676801f; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
-
-        .sec { display: none; }
-        .sec.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>紀錄</h1>
+    
     <div class="stats-grid">
         <div class="stat-card"><strong id="avgVal">0.00</strong><span>平均 km/L</span></div>
         <div class="stat-card"><strong id="countVal">0</strong><span>總筆數</span></div>
     </div>
+
     <div class="segmented">
-        <div class="segment active" onclick="tab(0)">新增</div>
-        <div class="segment" onclick="tab(1)">圖表</div>
-        <div class="segment" onclick="tab(2)">明細</div>
+        <div class="segment active" id="tab0" onclick="tab(0)">新增</div>
+        <div class="segment" id="tab1" onclick="tab(1)">圖表</div>
+        <div class="segment" id="tab2" onclick="tab(2)">明細</div>
     </div>
+
     <div id="s0" class="sec active">
         <div class="ios-list">
             <input type="hidden" id="editIdx" value="-1">
@@ -101,108 +38,19 @@
         </div>
         <button class="btn" onclick="save()">儲存數據</button>
     </div>
-    <div id="s1" class="sec"><div class="stat-card"><canvas id="chart"></canvas></div></div>
-    <div id="s2" class="sec">
-        <div class="ios-list" id="list"></div>
-        <button onclick="exportXLS()" style="color:var(--ios-blue); background:none; border:none; width:100%; padding:20px; font-size:16px;">📥 導出 Excel</button>
-        <button onclick="clearAll()" style="color:#FF3B30; background:none; border:none; width:100%; font-size:12px; margin-bottom: 30px;">重置資料</button>
+
+    <div id="s1" class="sec">
+        <div class="stat-card">
+            <canvas id="chart"></canvas>
+        </div>
     </div>
 
-    <script>
-        let records = JSON.parse(localStorage.getItem('fuelRecords')) || [];
-        let chart;
-        window.onload = () => { setCurrentTime(); initChart(); render(); };
+    <div id="s2" class="sec">
+        <div class="ios-list" id="list"></div>
+        <button onclick="exportXLS()" class="secondary-btn">📥 導出 Excel</button>
+        <button onclick="clearAll()" class="danger-btn">重置資料</button>
+    </div>
 
-        function setCurrentTime() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('date').value = `${year}-${month}-${day}`;
-            document.getElementById('time').value = `${hours}:${minutes}`;
-        }
-
-        function tab(i) {
-            document.querySelectorAll('.segment').forEach((s, x) => s.classList.toggle('active', x===i));
-            document.querySelectorAll('.sec').forEach((s, x) => s.classList.toggle('active', x===i));
-            if(i===1) updateChart();
-        }
-
-        function save() {
-            const d = document.getElementById('date').value, t = document.getElementById('time').value, l = parseFloat(document.getElementById('liters').value), km = parseFloat(document.getElementById('distance').value), idx = parseInt(document.getElementById('editIdx').value);
-            if(!d || !t || isNaN(l) || isNaN(km)) return alert("請正確輸入數值");
-            const entry = { d, t, l, km, cons: Number((km/l).toFixed(2)) };
-            if(idx === -1) records.push(entry); else records[idx] = entry;
-            records.sort((a,b) => (a.d + a.t).localeCompare(b.d + b.t));
-            localStorage.setItem('fuelRecords', JSON.stringify(records));
-            document.getElementById('editIdx').value="-1"; document.getElementById('liters').value=''; document.getElementById('distance').value='';
-            setCurrentTime(); render(); tab(2);
-        }
-
-        function render() {
-            const valid = records.filter(r => !isNaN(r.cons));
-            document.getElementById('avgVal').innerText = valid.length ? (valid.reduce((s,r) => s+r.cons, 0)/valid.length).toFixed(2) : "0.00";
-            document.getElementById('countVal').innerText = records.length;
-            const container = document.getElementById('list'); container.innerHTML = '';
-            
-            // 複製一份來處理對比邏輯（按時間正序）
-            const sortedRecords = [...records];
-            
-            [...records].reverse().forEach((r, revIdx) => {
-                const i = records.indexOf(r);
-                
-                // --- 油耗對比邏輯 ---
-                let diffHtml = '';
-                if (i > 0) {
-                    const prevCons = records[i-1].cons;
-                    const diff = Number((r.cons - prevCons).toFixed(2));
-                    if (diff > 0) diffHtml = `<span class="diff-tag diff-up">↑${diff}</span>`;
-                    else if (diff < 0) diffHtml = `<span class="diff-tag diff-down">↓${Math.abs(diff)}</span>`;
-                }
-
-                // --- 行駛天數邏輯 ---
-                let daysHtml = '';
-                if (i > 0) {
-                    const date1 = new Date(records[i-1].d);
-                    const date2 = new Date(r.d);
-                    const diffTime = Math.abs(date2 - date1);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    daysHtml = `<span class="days-tag">${diffDays}天</span>`;
-                }
-
-                container.innerHTML += `<div class="record-row">
-                    <div>
-                        <b>${r.d} <small style="color:#8E8E93; margin-left:5px;">${r.t || ''}</small></b>
-                        ${daysHtml}<br>
-                        <small style="color:#8E8E93">${r.l}L / ${r.km}km</small>
-                    </div>
-                    <div style="text-align:right">
-                        <span class="record-val">${r.cons}</span>${diffHtml}<br>
-                        <small style="color:var(--ios-blue)" onclick="editRecord(${i})">編輯</small>
-                        <small style="color:#FF3B30;margin-left:10px" onclick="del(${i})">刪除</small>
-                    </div>
-                </div>`;
-            });
-        }
-
-        function editRecord(i) { 
-            const r = records[i]; 
-            document.getElementById('date').value = r.d; 
-            document.getElementById('time').value = r.t || "00:00";
-            document.getElementById('liters').value = r.l; 
-            document.getElementById('distance').value = r.km; 
-            document.getElementById('editIdx').value = i; 
-            tab(0); 
-        }
-
-        function del(i) { if(confirm("確定刪除這筆紀錄？")) { records.splice(i,1); localStorage.setItem('fuelRecords', JSON.stringify(records)); render(); } }
-        function initChart() { const ctx = document.getElementById('chart').getContext('2d'); chart = new Chart(ctx, { type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#007AFF', tension:0.4, fill: false}]}, options:{plugins:{legend:{display:false}}}}); }
-        function updateChart() { chart.data.labels = records.map(r => r.d + ' ' + (r.t || '')); chart.data.datasets[0].data = records.map(r => r.cons); chart.update(); }
-        function clearAll() { if(confirm("確定清除所有資料？")) { localStorage.clear(); records=[]; render(); } }
-        function exportXLS() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Fuel"); XLSX.writeFile(wb, "MyFuelLog.xlsx"); }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
