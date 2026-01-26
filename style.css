@@ -1,0 +1,76 @@
+:root {
+    --ios-bg: #F2F2F7;
+    --ios-card: #FFFFFF;
+    --ios-text: #000000;
+    --ios-blue: #007AFF;
+    --ios-sep: #C6C6C8;
+    --ios-red: #FF3B30;
+    --ios-green: #34C759;
+    --ios-gray: #8E8E93;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ios-bg: #000000;
+        --ios-card: #1C1C1E;
+        --ios-text: #FFFFFF;
+        --ios-blue: #0A84FF;
+        --ios-sep: #38383A;
+    }
+}
+
+body { 
+    font-family: -apple-system, system-ui, sans-serif; 
+    background-color: var(--ios-bg); 
+    margin: 0; padding: 20px; color: var(--ios-text);
+    padding-top: calc(env(safe-area-inset-top) + 20px);
+    
+    /* 修正警告：加入標準屬性 */
+    -webkit-user-select: none; /* Safari */
+    user-select: none;         /* 標準屬性 */
+}
+input::-webkit-date-and-time-value {
+
+            text-align: right;
+
+            padding-right: 5px;
+
+}
+
+h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
+
+/* 統計卡片 */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+.stat-card { background: var(--ios-card); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
+.stat-card span { font-size: 11px; color: var(--ios-gray); font-weight: 600; }
+
+/* 分段控制器 */
+.segmented { background: #7676801f; border-radius: 10px; padding: 2px; display: flex; margin-bottom: 25px; }
+.segment { flex: 1; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ios-text); }
+.segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+
+/* iOS 清單與輸入 */
+.ios-list { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+.ios-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 0.5px solid var(--ios-sep); }
+.ios-item:last-child { border-bottom: none; }
+.ios-item input { border: none; background: none; font-size: 17px; color: var(--ios-blue); outline: none; width: 100%; text-align: right; }
+
+/* 按鈕樣式 */
+.btn { width: 100%; padding: 16px; border-radius: 14px; background: var(--ios-blue); color: white; border: none; font-size: 17px; font-weight: 600; cursor: pointer; }
+.btn:active { opacity: 0.5; }
+.secondary-btn { color: var(--ios-blue); background: none; border: none; width: 100%; padding: 20px; font-size: 16px; cursor: pointer; }
+.danger-btn { color: var(--ios-red); background: none; border: none; width: 100%; font-size: 12px; margin-bottom: 30px; cursor: pointer; }
+
+/* 記錄列 */
+.record-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--ios-sep); }
+.record-val { font-size: 20px; font-weight: 700; color: var(--ios-blue); }
+.diff-tag { font-size: 12px; font-weight: 600; margin-left: 4px; }
+.diff-up { color: var(--ios-green); }
+.diff-down { color: var(--ios-red); }
+.days-tag { font-size: 11px; color: var(--ios-gray); background: #7676801f; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+
+/* 切換動畫 */
+.sec { display: none; }
+.sec.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
