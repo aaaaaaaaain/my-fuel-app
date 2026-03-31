@@ -40,7 +40,7 @@ input::-webkit-date-and-time-value {
 h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
 
 /* 統計卡片 */
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
 .stat-card { background: var(--ios-card); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
 .stat-card span { font-size: 11px; color: var(--ios-gray); font-weight: 600; }
