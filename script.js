@@ -57,9 +57,11 @@ function save() {
 // 渲染列表
 function render() {
     const valid = records.filter(r => !isNaN(r.cons));
-    document.getElementById('avgVal').innerText = valid.length ? 
+    document.getElementById('avgVal').innerText = valid.length ?
         (valid.reduce((s, r) => s + r.cons, 0) / valid.length).toFixed(2) : "0.00";
     document.getElementById('countVal').innerText = records.length;
+    document.getElementById('lowVal').innerText = valid.length ?
+        Math.min(...valid.map(r => r.cons)).toFixed(2) : "--";
 
     const container = document.getElementById('list');
     container.innerHTML = '';
