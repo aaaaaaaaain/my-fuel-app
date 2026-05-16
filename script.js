@@ -202,7 +202,7 @@ function generateBarcode() {
 }
 
 function showBarcode(code) {
-    JsBarcode('#carrierBarcode', code, {
+    const opts = {
         format: 'CODE128',
         width: 2.8,
         height: 110,
@@ -210,7 +210,12 @@ function showBarcode(code) {
         margin: 8,
         background: '#FFFFFF',
         lineColor: '#000000'
-    });
+    };
+    JsBarcode('#carrierBarcode', code, opts);
     document.getElementById('carrierCodeDisplay').textContent = code;
     document.getElementById('barcodeSection').style.display = 'block';
+
+    JsBarcode('#inlineBarcodeImg', code, opts);
+    document.getElementById('inlineCodeDisplay').textContent = code;
+    document.getElementById('inlineBarcode').style.display = 'block';
 }

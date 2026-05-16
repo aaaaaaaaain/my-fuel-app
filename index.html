@@ -40,6 +40,14 @@
             <div class="ios-item"><label>公升 (L)</label><input type="number" id="liters" placeholder="0.00" inputmode="decimal"></div>
         </div>
         <button class="btn" onclick="save()">儲存數據</button>
+
+        <div id="inlineBarcode" class="barcode-section" style="display:none">
+            <div class="barcode-card">
+                <svg id="inlineBarcodeImg"></svg>
+                <div class="carrier-code-display" id="inlineCodeDisplay"></div>
+                <div class="barcode-hint">請對準掃描器，保持螢幕亮度最高</div>
+            </div>
+        </div>
     </div>
 
     <div id="s1" class="sec">
