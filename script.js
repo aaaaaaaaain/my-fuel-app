@@ -20,6 +20,7 @@ function tab(i) {
     document.querySelectorAll('.segment').forEach((s, x) => s.classList.toggle('active', x === i));
     document.querySelectorAll('.sec').forEach((s, x) => s.classList.toggle('active', x === i));
     if (i === 1) updateChart();
+    if (i === 0) renderInlineBarcode();
 }
 
 // 儲存邏輯
@@ -186,7 +187,10 @@ function loadSavedCarrier() {
     const saved = localStorage.getItem('carrierCode');
     if (saved) {
         document.getElementById('carrierInput').value = saved;
-        showBarcode('/' + saved);
+        JsBarcode('#carrierBarcode', '/' + saved, barcodeOpts);
+        document.getElementById('carrierCodeDisplay').textContent = '/' + saved;
+        document.getElementById('barcodeSection').style.display = 'block';
+        renderInlineBarcode();
     }
 }
 
@@ -201,21 +205,28 @@ function generateBarcode() {
     showBarcode(code);
 }
 
+const barcodeOpts = {
+    format: 'CODE128',
+    width: 2.8,
+    height: 110,
+    displayValue: false,
+    margin: 8,
+    background: '#FFFFFF',
+    lineColor: '#000000'
+};
+
 function showBarcode(code) {
-    const opts = {
-        format: 'CODE128',
-        width: 2.8,
-        height: 110,
-        displayValue: false,
-        margin: 8,
-        background: '#FFFFFF',
-        lineColor: '#000000'
-    };
-    JsBarcode('#carrierBarcode', code, opts);
+    JsBarcode('#carrierBarcode', code, barcodeOpts);
     document.getElementById('carrierCodeDisplay').textContent = code;
     document.getElementById('barcodeSection').style.display = 'block';
+    renderInlineBarcode();
+}
 
-    JsBarcode('#inlineBarcodeImg', code, opts);
+function renderInlineBarcode() {
+    const saved = localStorage.getItem('carrierCode');
+    if (!saved) return;
+    const code = '/' + saved;
+    JsBarcode('#inlineBarcodeImg', code, barcodeOpts);
     document.getElementById('inlineCodeDisplay').textContent = code;
     document.getElementById('inlineBarcode').style.display = 'block';
 }
