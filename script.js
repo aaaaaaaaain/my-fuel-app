@@ -6,6 +6,7 @@ window.onload = () => {
     setCurrentTime();
     initChart();
     render();
+    loadSavedCarrier();
 };
 
 function setCurrentTime() {
@@ -170,8 +171,44 @@ function exportXLS() {
 
 function clearAll() {
     if (confirm("確定清除所有資料？這無法復原。")) {
+        const carrier = localStorage.getItem('carrierCode');
         localStorage.clear();
+        if (carrier) localStorage.setItem('carrierCode', carrier);
         records = [];
         render();
     }
+}
+
+// 載具條碼
+function loadSavedCarrier() {
+    const saved = localStorage.getItem('carrierCode');
+    if (saved) {
+        document.getElementById('carrierInput').value = saved;
+        showBarcode('/' + saved);
+    }
+}
+
+function generateBarcode() {
+    const raw = document.getElementById('carrierInput').value.trim().toUpperCase();
+    if (!/^[A-Z0-9+\-.]{7}$/.test(raw)) {
+        alert('請輸入正確的 7 碼載具代碼\n（英文大寫、數字、+、-、.）');
+        return;
+    }
+    const code = '/' + raw;
+    localStorage.setItem('carrierCode', raw);
+    showBarcode(code);
+}
+
+function showBarcode(code) {
+    JsBarcode('#carrierBarcode', code, {
+        format: 'CODE128',
+        width: 2.8,
+        height: 110,
+        displayValue: false,
+        margin: 8,
+        background: '#FFFFFF',
+        lineColor: '#000000'
+    });
+    document.getElementById('carrierCodeDisplay').textContent = code;
+    document.getElementById('barcodeSection').style.display = 'block';
 }
