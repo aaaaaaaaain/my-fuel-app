@@ -11,6 +11,7 @@
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -23,9 +24,10 @@
     </div>
 
     <div class="segmented">
-        <div class="segment active" id="tab0" onclick="tab(0)">油耗新增</div>
+        <div class="segment active" id="tab0" onclick="tab(0)">新增</div>
         <div class="segment" id="tab1" onclick="tab(1)">圖表</div>
-        <div class="segment" id="tab2" onclick="tab(2)">歷史油耗</div>
+        <div class="segment" id="tab2" onclick="tab(2)">歷史</div>
+        <div class="segment" id="tab3" onclick="tab(3)">載具</div>
     </div>
 
     <div id="s0" class="sec active">
@@ -49,6 +51,30 @@
         <div class="ios-list" id="list"></div>
         <button onclick="exportXLS()" class="secondary-btn">📥 導出 Excel</button>
         <button onclick="clearAll()" class="danger-btn">重置資料</button>
+    </div>
+
+    <div id="s3" class="sec">
+        <div class="ios-list">
+            <div class="ios-item">
+                <label>載具代碼</label>
+                <div class="carrier-input-wrap">
+                    <span class="carrier-prefix">/</span>
+                    <input type="text" id="carrierInput" maxlength="7" placeholder="ABC1234"
+                           inputmode="text" autocomplete="off" autocorrect="off"
+                           autocapitalize="characters" spellcheck="false"
+                           oninput="this.value=this.value.toUpperCase()">
+                </div>
+            </div>
+        </div>
+        <button class="btn" onclick="generateBarcode()">顯示條碼</button>
+
+        <div id="barcodeSection" class="barcode-section" style="display:none">
+            <div class="barcode-card">
+                <svg id="carrierBarcode"></svg>
+                <div class="carrier-code-display" id="carrierCodeDisplay"></div>
+                <div class="barcode-hint">請對準掃描器，保持螢幕亮度最高</div>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
