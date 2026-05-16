@@ -40,14 +40,14 @@ input::-webkit-date-and-time-value {
 h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1px; }
 
 /* 統計卡片 */
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px; }
 .stat-card { background: var(--ios-card); padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .stat-card strong { display: block; font-size: 26px; color: var(--ios-blue); }
 .stat-card span { font-size: 11px; color: var(--ios-gray); font-weight: 600; }
 
 /* 分段控制器 */
 .segmented { background: #7676801f; border-radius: 10px; padding: 2px; display: flex; margin-bottom: 25px; }
-.segment { flex: 1; padding: 8px 0; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ios-text); }
+.segment { flex: 1; padding: 8px 0; text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ios-text); }
 .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
 
 /* iOS 清單與輸入 */
