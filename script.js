@@ -91,7 +91,7 @@ function render() {
                 <div>
                     <b>${r.d} <small style="color:var(--ios-gray); margin-left:5px;">${r.t || ''}</small></b>
                     ${daysHtml}<br>
-                    <small style="color:var(--ios-gray)">${r.l}L / ${r.km}km</small>
+                    <small style="color:var(--ios-gray)">${r.km}km/${r.l}L</small>
                 </div>
                 <div style="text-align:right">
                     <span class="record-val">${r.cons}</span>${diffHtml}<br>
