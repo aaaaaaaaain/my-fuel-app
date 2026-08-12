@@ -50,10 +50,24 @@ h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1p
 .segment { flex: 1; padding: 8px 0; text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ios-text); }
 .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
 
+/* 里程輸入模式切換 */
+.mode-switch { margin-bottom: 15px; }
+.mode-hint {
+    font-size: 12px;
+    color: var(--ios-gray);
+    line-height: 1.6;
+    margin: -8px 0 16px;
+    padding: 0 4px;
+}
+.mode-hint b { color: var(--ios-blue); }
+.mode-hint .warn { color: var(--ios-red); }
+.odo-tag { font-size: 11px; color: var(--ios-gray); background: #7676801f; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+
 /* iOS 清單與輸入 */
 .ios-list { background: var(--ios-card); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
 .ios-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 0.5px solid var(--ios-sep); }
 .ios-item:last-child { border-bottom: none; }
+.ios-item label { white-space: nowrap; }
 .ios-item input { border: none; background: none; font-size: 17px; color: var(--ios-blue); outline: none; width: 100%; text-align: right; }
 
 /* 按鈕樣式 */
