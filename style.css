@@ -47,8 +47,16 @@ h1 { font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1p
 
 /* 分段控制器 */
 .segmented { background: #7676801f; border-radius: 10px; padding: 2px; display: flex; margin-bottom: 25px; }
-.segment { flex: 1; padding: 8px 0; text-align: center; font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 8px; color: var(--ios-text); }
+.segment {
+    flex: 1; padding: 8px 0; text-align: center; font-size: 11px; font-weight: 600;
+    cursor: pointer; border-radius: 8px; color: var(--ios-text);
+    /* 讓 <button> 與 <div> 的外觀一致，並確保手機上點得動 */
+    border: none; background: none; font-family: inherit;
+    -webkit-appearance: none; appearance: none;
+    touch-action: manipulation;
+}
 .segment.active { background: var(--ios-card); box-shadow: 0 3px 8px rgba(0,0,0,0.12); }
+.segment:active { opacity: 0.6; }
 
 /* 里程輸入模式切換 */
 .mode-switch { margin-bottom: 15px; }
