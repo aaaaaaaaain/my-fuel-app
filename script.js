@@ -3,14 +3,20 @@ let chart;
 let inputMode = localStorage.getItem('inputMode') || 'trip'; // 'trip' = 直接輸入里程, 'odo' = 總公里數相減
 
 // 初始化
-window.onload = () => {
-    setCurrentTime();
-    recalc();
-    initChart();
-    setMode(inputMode);
-    render();
-    loadSavedCarrier();
-};
+// 每個步驟獨立包起來：CDN 函式庫載入失敗（例如手機沒訊號）時，
+// 只有該功能失效，不會讓整個初始化中斷、導致按鈕都沒反應。
+function init() {
+    const steps = [setCurrentTime, recalc, () => setMode(inputMode), render, initChart, loadSavedCarrier];
+    steps.forEach(step => {
+        try { step(); } catch (e) { console.error('初始化步驟失敗:', e); }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 function setCurrentTime() {
     const now = new Date();
@@ -229,6 +235,7 @@ function del(i) {
 
 // 圖表邏輯
 function initChart() {
+    if (typeof Chart === 'undefined') return; // 圖表函式庫沒載到就跳過，其他功能照常
     const ctx = document.getElementById('chart').getContext('2d');
     chart = new Chart(ctx, {
         type: 'line',
@@ -238,6 +245,7 @@ function initChart() {
 }
 
 function updateChart() {
+    if (!chart) return;
     const valid = records.filter(r => typeof r.cons === 'number' && !isNaN(r.cons));
     chart.data.labels = valid.map(r => r.d);
     chart.data.datasets[0].data = valid.map(r => r.cons);
@@ -246,6 +254,7 @@ function updateChart() {
 
 // 匯出與清除
 function exportXLS() {
+    if (typeof XLSX === 'undefined') return alert('Excel 元件載入失敗，請連上網路後重新整理');
     // 1. 整理明細資料（中文標題）
     const exportedData = records.map(r => ({
         "日期": r.d,
@@ -299,6 +308,7 @@ function loadSavedCarrier() {
     const saved = localStorage.getItem('carrierCode');
     if (saved) {
         document.getElementById('carrierInput').value = saved;
+        if (typeof JsBarcode === 'undefined') return;
         JsBarcode('#carrierBarcode', '/' + saved, barcodeOpts);
         document.getElementById('carrierCodeDisplay').textContent = '/' + saved;
         document.getElementById('barcodeSection').style.display = 'block';
@@ -328,6 +338,7 @@ const barcodeOpts = {
 };
 
 function showBarcode(code) {
+    if (typeof JsBarcode === 'undefined') return alert('條碼元件載入失敗，請連上網路後重新整理');
     JsBarcode('#carrierBarcode', code, barcodeOpts);
     document.getElementById('carrierCodeDisplay').textContent = code;
     document.getElementById('barcodeSection').style.display = 'block';
@@ -336,7 +347,7 @@ function showBarcode(code) {
 
 function renderInlineBarcode() {
     const saved = localStorage.getItem('carrierCode');
-    if (!saved) return;
+    if (!saved || typeof JsBarcode === 'undefined') return;
     const code = '/' + saved;
     JsBarcode('#inlineBarcodeImg', code, barcodeOpts);
     document.getElementById('inlineCodeDisplay').textContent = code;
